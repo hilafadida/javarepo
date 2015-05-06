@@ -1,4 +1,4 @@
-package com.java.project;
+package com.java.project.model;
 import java.util.Date;
 
 public class Stock {
@@ -14,11 +14,20 @@ public class Stock {
 	private int recommendation;
 	private int stockQuantity;
 	
-	public Stock(String symbol, float ask, float bid, Date date){
+	public Stock(String symbol, float ask, float bid, Date date){ //create stock
 		this.symbol = symbol;
 		this.ask = ask;
 		this.bid = bid;
 		this.date = date;
+	}
+	
+	public Stock(Stock copyStock){ // duplicate constructor stock
+		this.symbol = copyStock.getSymbol();
+		this.ask = copyStock.getAsk();
+		this.bid = copyStock.getBid();
+		this.date = copyStock.getDate();
+		this.recommendation = copyStock.getRecommendation();
+		this.stockQuantity = copyStock.getStockQuantity();
 	}
 
 public String getSymbol(){
@@ -53,8 +62,23 @@ public void setDate(Date date) {
 	this.date = date;
 }
 
+public int getRecommendation(){
+	return recommendation;
+}
 
-public String getHtmlDescription(){
+public void setRecommendation(int recommendation){
+	this.recommendation = recommendation;
+}
+
+public int getStockQuantity(){
+	return stockQuantity;
+}
+
+public void setStockQuantity(int stockQuantity){
+	this.stockQuantity = stockQuantity;
+}
+
+public String getHtmlDescription(){ // prints stock
 	return "<b>Symbol</b> = " + getSymbol() + ", <b>Ask</b> = " + getAsk() + ", <b>Bid</b> = " + getBid() +
 			", <b>Date</b> = " + getDate().getMonth() + "/" + getDate().getDate() + "/" +(1900 + getDate().getYear())+"<br>";
 }
