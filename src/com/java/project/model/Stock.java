@@ -1,20 +1,17 @@
 package com.java.project.model;
 import java.util.Date;
 
-public class Stock {
+import com.java.project.model.Portfolio.ALGO_RECOMMENDATION;
 
-	private static final int BUY = 0;
-	private static final int SELL = 1;
-	private static final int REMOVE = 2;
-	private static final int HOLD = 3;
+public class Stock {
 	
 	private String symbol;
 	private float ask, bid;
 	private Date date;
-	private int recommendation;
+	private ALGO_RECOMMENDATION recommendation;
 	private int stockQuantity;
 	
-	public Stock(String symbol, float ask, float bid, Date date){ //create stock
+	public Stock(String symbol, float ask, float bid, Date date, int stockQuantity){ //create stock
 		this.symbol = symbol;
 		this.ask = ask;
 		this.bid = bid;
@@ -62,11 +59,11 @@ public void setDate(Date date) {
 	this.date = date;
 }
 
-public int getRecommendation(){
+public ALGO_RECOMMENDATION getRecommendation(){
 	return recommendation;
 }
 
-public void setRecommendation(int recommendation){
+public void setRecommendation(ALGO_RECOMMENDATION recommendation){
 	this.recommendation = recommendation;
 }
 
@@ -80,6 +77,7 @@ public void setStockQuantity(int stockQuantity){
 
 public String getHtmlDescription(){ // prints stock
 	return "<b>Symbol</b> = " + getSymbol() + ", <b>Ask</b> = " + getAsk() + ", <b>Bid</b> = " + getBid() +
-			", <b>Date</b> = " + getDate().getMonth() + "/" + getDate().getDate() + "/" +(1900 + getDate().getYear())+"<br>";
+			", <b>Date</b> = " + getDate().getMonth() + "/" + getDate().getDate() + "/" +(1900 + getDate().getYear()) + 
+			"<b> Quantity</b> = " + getStockQuantity() + "</br>";
 }
 }

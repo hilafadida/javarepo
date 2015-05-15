@@ -11,6 +11,10 @@ public class PortfolioManager {
 	
 		public Portfolio getPortfolio(){
 			
+			Portfolio myPortfolio = new Portfolio();
+			myPortfolio.setTitle("Exercise 7 portfolio");
+			myPortfolio.setBalance(10000);
+			
 			Calendar cal = Calendar.getInstance();
 			cal.set(2014, 11, 15);
 			
@@ -18,17 +22,19 @@ public class PortfolioManager {
 			Date date2 = cal.getTime();
 			Date date3 = cal.getTime();
 			
-			String portfolioTitle = "Portfolio 1";
-			Stock stock1 = new Stock("PIH", 13.1f, 12.4f, date1);
-			Stock stock2 = new Stock("ALL", 5.78f, 5.5f, date2);
-			Stock stock3 = new Stock("CAAS", 32.2f, 31.5f, date3);
-			int numOfStocks = 3;
-			Stock[] stockArr = {stock1, stock2, stock3};
+			Stock stock1 =  new Stock("PIH", (float)10.0, (float)8.5, date1,0);
+			Stock stock2 = new Stock("AAL", (float)30.0, (float)25.5, date2, 0);
+			Stock stock3 =  new Stock("CAAS", (float)20.0, (float)15.5, date3, 0);
+
 			
-			Portfolio portfolio = new Portfolio(portfolioTitle,stockArr, numOfStocks);
+			myPortfolio.buyStock(stock1, 20);
+			myPortfolio.buyStock(stock2, 30);
+			myPortfolio.buyStock(stock3, 40);
 			
+			myPortfolio.sellStock("AAL", -1); 
+			myPortfolio.removeStock("CAAS");
 			
-			return portfolio;
+			return myPortfolio;
 		}
 			 
 }
