@@ -1,83 +1,95 @@
 package com.java.project.model;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.algo.model.StockInterface;
 
 import com.java.project.model.Portfolio.ALGO_RECOMMENDATION;
 
-public class Stock {
-	
-	private String symbol;
-	private float ask, bid;
+public class Stock implements StockInterface{
+	String symbol;
+	private float ask; 
+	private float bid;
 	private Date date;
 	private ALGO_RECOMMENDATION recommendation;
 	private int stockQuantity;
-	
-	public Stock(String symbol, float ask, float bid, Date date, int stockQuantity){ //create stock
+	/**This constructor creates a stock object  
+	 * @param gets symbol of stock, ask, bid and date */
+	public Stock (String symbol, float ask, float bid, Date date) {
+		super();
 		this.symbol = symbol;
 		this.ask = ask;
 		this.bid = bid;
 		this.date = date;
+		this.stockQuantity = 0;
 	}
 	
-	public Stock(Stock copyStock){ // duplicate constructor stock
-		this.symbol = copyStock.getSymbol();
-		this.ask = copyStock.getAsk();
-		this.bid = copyStock.getBid();
-		this.date = copyStock.getDate();
-		this.recommendation = copyStock.getRecommendation();
-		this.stockQuantity = copyStock.getStockQuantity();
+	/**The copy constructor copies given stock object by value 
+	 * @param gets stock object */
+	public Stock(Stock stock){
+		this(new String (stock.getSymbol()), stock.getAsk(), stock.getBid(), new Date(stock.getDate(). getTime() ));	
+	} 
+	/**create stock constructor*/
+	public Stock() {
+		this.symbol = null;
+		this.ask = 0;
+		this.bid = 0;
+		this.date = null;
+		this.stockQuantity = 0;
 	}
 
-public String getSymbol(){
-	return symbol;
-}
+	//getters and setters
+	public String getSymbol() {
+		return symbol;
+	}
+	public void setSymbol(String symbol) {
+		this.symbol = symbol;
+	}
+	public float getAsk() {
+		return ask;
+	}
+	public void setAsk(float ask) {
+		this.ask = ask;
+	}
+	public float getBid() {
+		return bid;
+	}
+	public void setBid(float bid) {
+		this.bid = bid;
+	}
+	public Date getDate() {
+		return date;
+	}
+	public void setDate(Date time) {
+		this.date = time;
+	}
+	public void setDate(long time) {
+		this.date = new Date(time);
+	}
+	public ALGO_RECOMMENDATION getRecommendation() {
+		return recommendation;
+	}
+	public void setRecommendation(ALGO_RECOMMENDATION recommendation) {
+		this.recommendation = recommendation;
+	}
+	public int getStockQuantity() {
+		return stockQuantity;
+	}
+	public void setStockQuantity(int stockQuantity) {
+		this.stockQuantity = stockQuantity;
+	}
 
-public void setSymbol(String value){
-	this.symbol = value;
-}
+	/**The method prints a stock  
+	 * @return stock's details(symbol, ask, bid and date) */
+	public String getHtmlDescription(){
+		SimpleDateFormat df = new SimpleDateFormat("MM/dd/YYYY");
+		String stocksDetails = "<b>Stock symbol</b> = " +getSymbol()+","+""
+				+ "<b> Ask </b> = "+getAsk()+","
+				+ "<b> Bid </b> = "+getBid()+","
+				+ "<b> Date </b> = "+df.format(getDate())+", "
+				+ "<b> Quantity</b> = "+ getStockQuantity();
+		
+		return stocksDetails;
+	}
 
-public float getAsk() {
-	return ask;
-}
-
-public void setAsk(float ask) {
-	this.ask = ask;
-}
-
-public float getBid() {
-	return bid;
-}
-
-public void setBid(float bid) {
-	this.bid = bid;
-}
-
-public Date getDate() {
-	return date;
-}
-
-public void setDate(Date date) {
-	this.date = date;
-}
-
-public ALGO_RECOMMENDATION getRecommendation(){
-	return recommendation;
-}
-
-public void setRecommendation(ALGO_RECOMMENDATION recommendation){
-	this.recommendation = recommendation;
-}
-
-public int getStockQuantity(){
-	return stockQuantity;
-}
-
-public void setStockQuantity(int stockQuantity){
-	this.stockQuantity = stockQuantity;
-}
-
-public String getHtmlDescription(){ // prints stock
-	return "<b>Symbol</b> = " + getSymbol() + ", <b>Ask</b> = " + getAsk() + ", <b>Bid</b> = " + getBid() +
-			", <b>Date</b> = " + getDate().getMonth() + "/" + getDate().getDate() + "/" +(1900 + getDate().getYear()) + 
-			"<b> Quantity</b> = " + getStockQuantity() + "</br>";
-}
 }
