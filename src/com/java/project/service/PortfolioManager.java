@@ -22,11 +22,17 @@ import org.algo.service.ServiceManager;
 import com.java.project.model.Portfolio;
 import com.java.project.model.Stock;
 
+import exceptions.BalanceException;
+import exceptions.PortfolioFullException;
+import exceptions.StockAlreadyExistsException;
+import exceptions.StockNotExistException;
+
+
 public class PortfolioManager implements PortfolioManagerInterface {
 	private DatastoreService datastoreService = ServiceManager.datastoreService();
 
-	/**The method creates new portFolio.
-	 * @return new portFolio of stocks */
+	/**The method creates new portfolio.
+	 * @return new portfolio of stocks */
 	@Override
 
 	public PortfolioInterface getPortfolio() {
@@ -54,7 +60,7 @@ public class PortfolioManager implements PortfolioManagerInterface {
 				update.add(new Stock(stock));
 			}
 
-			datastoreService.saveToDataStore(toDtoList(update));
+			 datastoreService.saveToDataStore(toDtoList(update));
 
 		} catch (SymbolNotFoundInNasdaq e) {
 			System.out.println(e.getMessage());
@@ -69,6 +75,7 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		Portfolio portfolio = (Portfolio) getPortfolio();
 		Map<Date, Float> map = new HashMap<>();
 
+		//get stock status from db.
 		StockInterface[] stocks = portfolio.getStocks();
 		for (int i = 0; i < stocks.length; i++) {
 			StockInterface stock = stocks[i];
@@ -100,35 +107,43 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		PortfolioTotalStatus[] ret = new PortfolioTotalStatus[map.size()];
 
 		int index = 0;
+		//create dto objects
 		for (Date date : map.keySet()) {
 			ret[index] = new PortfolioTotalStatus(date, map.get(date));
 			index++;
 		}
 
+		//sort by date ascending.
 		Arrays.sort(ret);
 
 		return ret;
 	}
 	/**
 	 * Add stock to portfolio 
+	 * @throws StockNotExistException 
 	 */
 	@Override
-	public void addStock(String symbol) {
+	public void addStock(String symbol) throws PortfolioFullException, StockAlreadyExistsException, StockNotExistException{
 		Portfolio portfolio = (Portfolio) getPortfolio();
 		try 
 		{
 			StockDto stockDto = ServiceManager.marketService().getStock(symbol);
-
+			
 			//get current symbol values from nasdaq.
 			Stock stock = fromDto(stockDto);
-
+			
 			//first thing, add it to portfolio.
-			portfolio.addStock(stock);
-			System.out.println("Stock added");
-
-			//second thing, save the new stock to the database.
+			try {
+				portfolio.addStock(stock);
+			}catch(PortfolioFullException e) {
+				System.out.println(e.getMessage());
+				throw e;
+			}catch(StockAlreadyExistsException e) {
+				System.out.println(e.getMessage());
+				throw e;
+			}
 			datastoreService.saveStock(toDto(portfolio.findStock(symbol)));
-
+			
 			flush(portfolio);
 		} 
 		catch (SymbolNotFoundInNasdaq e) 
@@ -138,7 +153,7 @@ public class PortfolioManager implements PortfolioManagerInterface {
 	}
 
 	/**
-	 * Set title
+	 * Set portfolio title
 	 */
 	@Override
 	public void setTitle(String title) {
@@ -147,32 +162,51 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		flush(portfolio);
 	}
 	/**
-	 * update balance
+	 * update portfolio balance
 	 */
-	public void updateBalance(float value) { 
+	public void updateBalance(float value) throws BalanceException{ 
 		Portfolio portfolio = (Portfolio) getPortfolio();
-		portfolio.updateBalance(value);
+		try {
+			portfolio.updateBalance(value);
+		}catch(BalanceException e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
 		flush(portfolio);
 	}
-
+	
 	/**
 	 * Buy stock
 	 */
 	@Override
-	public void buyStock(String symbol, int quantity) throws PortfolioException{
+	public void buyStock(String symbol, int quantity) throws PortfolioException, BalanceException, PortfolioFullException, StockAlreadyExistsException, StockNotExistException{
 		try 
 		{
 			Portfolio portfolio = (Portfolio) getPortfolio();
-
+			
 			Stock stock = (Stock) portfolio.findStock(symbol);
 			if(stock == null) 
 			{
 				stock = fromDto(ServiceManager.marketService().getStock(symbol));				
 			}
-
 			portfolio.buyStock(stock, quantity);
 			flush(portfolio);
-			System.out.println("Purchase Succeeeded");
+		}
+		catch(PortfolioFullException e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		catch(BalanceException e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		catch(StockAlreadyExistsException e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		catch(StockNotExistException e) {
+			System.out.println(e.getMessage());
+			throw e;
 		}
 		catch (Exception e) 
 		{
@@ -184,23 +218,32 @@ public class PortfolioManager implements PortfolioManagerInterface {
 	 * Sell stock
 	 */
 	@Override
-	public void sellStock(String symbol, int quantity) throws PortfolioException {
+	public void sellStock(String symbol, int quantity) throws StockNotExistException {
 		Portfolio portfolio = (Portfolio) getPortfolio();
+		try{
 		portfolio.sellStock(symbol, quantity);
+		}catch(StockNotExistException e) {
+			System.out.println(e.getMessage());
+			throw e;
+		}
 		flush(portfolio);
-		System.out.println("Stock sold");
 	}
-
+	
 
 	/**
 	 * Remove stock
+	 * @throws StockNotExistException 
 	 */
 	@Override
-	public void removeStock(String symbol) { 
+	public void removeStock(String symbol) throws StockNotExistException { 
 		Portfolio portfolio = (Portfolio) getPortfolio();
-		portfolio.removeStock(symbol);
+		try{
+			portfolio.removeStock(symbol);
+			}catch(StockNotExistException e) {
+				System.out.println(e.getMessage());
+				throw e;
+			}
 		flush(portfolio);
-		System.out.println("Stock removed");
 	}
 
 	/**
@@ -213,6 +256,8 @@ public class PortfolioManager implements PortfolioManagerInterface {
 
 	/**
 	 * fromDto - get stock from Data Transfer Object
+	 * @param stockDto
+	 * @return Stock
 	 */
 	private Stock fromDto(StockDto stockDto) 
 	{
@@ -227,7 +272,7 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		{
 			newStock.setRecommendation(Portfolio.ALGO_RECOMMENDATION.valueOf(stockDto.getRecommendation()));
 		}
-
+		
 		else
 		{
 			newStock.setRecommendation(Portfolio.ALGO_RECOMMENDATION.valueOf("HOLD"));
@@ -238,6 +283,7 @@ public class PortfolioManager implements PortfolioManagerInterface {
 
 	/**
 	 * toDto - covert Stock to Stock DTO
+	 * @param inStock
 	 */
 	private StockDto toDto(StockInterface inStock) 
 	{
@@ -245,12 +291,17 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		{
 			return null;
 		}
-
+		
 		Stock stock = (Stock) inStock;
 		return new StockDto(stock.getSymbol(), stock.getAsk(), stock.getBid(), 
 				stock.getDate(), stock.getStockQuantity(), stock.getRecommendation().name());
 	}
 
+	/**
+	 * toDto - converts Portfolio to Portfolio DTO
+	 * @param portfolio
+	 * @return
+	 */
 	private PortfolioDto toDto(Portfolio portfolio) {
 		StockDto[] array = null;
 		StockInterface[] stocks = portfolio.getStocks();
@@ -265,6 +316,8 @@ public class PortfolioManager implements PortfolioManagerInterface {
 
 	/**
 	 * fromDto - converts portfolioDto to Portfolio
+	 * @param dto
+	 * @return portfolio
 	 */
 	private Portfolio fromDto(PortfolioDto dto) {
 		StockDto[] stocks = dto.getStocks();
@@ -293,6 +346,8 @@ public class PortfolioManager implements PortfolioManagerInterface {
 
 	/**
 	 * toDtoList - convert List of Stocks to list of Stock DTO
+	 * @param stocks
+	 * @return stockDto
 	 */
 	private List<StockDto> toDtoList(List<Stock> stocks) {
 
@@ -305,7 +360,9 @@ public class PortfolioManager implements PortfolioManagerInterface {
 		return ret;
 	}
 	/**
-	 * returns new instance of Portfolio from other instance.
+	 * A method that returns a new instance of Portfolio copied from another instance.
+	 * @param portfolio		Portfolio to copy.
+	 * @return a new Portfolio object with the same values as the one given.
 	 */
 	public Portfolio duplicatePortfolio(Portfolio portfolio) {
 		Portfolio copyPortfolio = new Portfolio(portfolio);

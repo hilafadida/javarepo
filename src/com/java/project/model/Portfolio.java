@@ -3,6 +3,11 @@ package com.java.project.model;
 import org.algo.model.PortfolioInterface;
 import org.algo.model.StockInterface;
 
+import exceptions.BalanceException;
+import exceptions.PortfolioFullException;
+import exceptions.StockAlreadyExistsException;
+import exceptions.StockNotExistException;
+
 public class Portfolio implements PortfolioInterface {
 
 	private final static int MAX_PORTFOLIO_SIZE = 5;
@@ -72,13 +77,16 @@ public class Portfolio implements PortfolioInterface {
 		this.stocks = stocks;
 	}
 	/**adds a new stock to the portfolio  */
-	public void addStock(Stock stock) {
+	public void addStock(Stock stock) throws StockAlreadyExistsException, PortfolioFullException, StockNotExistException {
+		
 		if(stock == null){
-			System.out.print("Error, Invalid stock");
+			throw new StockNotExistException();
 		}
+		
 		else if(this.portfolioSize == MAX_PORTFOLIO_SIZE){
-			System.out.println("Can't add this stock, place is limited up to" + MAX_PORTFOLIO_SIZE + " stocks");
+			throw new PortfolioFullException();
 		}
+		
 		else{
 			int index = findIndexBySymbol(stock.getSymbol());
 			if (index == this.portfolioSize){//if not exists
@@ -87,10 +95,11 @@ public class Portfolio implements PortfolioInterface {
 				this.portfolioSize++;
 			}
 			else{
-				System.out.println("This stock has been already added");
+				throw new StockAlreadyExistsException();
 			}
 		}
 	}
+	
 	/**prints stocks in the portfolio */
 	public String getHtmlString() {
 		String portfolioString = new String("<h1>" + getTitle() + "</h1>"+"<br>"+ "<b>Total poertfolio value</b>: "+getTotalValue()+"$"+ ", "+"<b>Total stock value</b>: "+getStockValue()+"$"+ ", "+"<b>Balance</b>: "+getBalance()+"$" + "<br>");
@@ -103,19 +112,22 @@ public class Portfolio implements PortfolioInterface {
 	}
 
 	/**removes stock from the portfolio */
-	public void removeStock(String stockSymbol) {
+	public void removeStock(String stockSymbol) throws StockNotExistException {
+		
 		if(stockSymbol.equals(null)){
-			System.out.print("Error, an incorrect stock symbol was received");
+			throw new StockNotExistException();
 		}
+		
 		else{
-			int index= findIndexBySymbol(stockSymbol);
+		int index= findIndexBySymbol(stockSymbol);
 			if(index < this.portfolioSize){//exist
 				if(((Stock) this.stocks[index]).getStockQuantity() != 0 ){
-					sellStock(stockSymbol, -1);
-					this.stocks[index] = this.stocks[this.portfolioSize-1];
-					this.stocks[this.portfolioSize-1] = null;
-					this.portfolioSize--;
+				sellStock(stockSymbol, -1);
+				this.stocks[index] = this.stocks[this.portfolioSize-1];
+				this.stocks[this.portfolioSize-1] = null;
+				this.portfolioSize--;
 				}
+				
 				else{
 					this.stocks[index] = this.stocks[this.portfolioSize-1];
 					this.stocks[this.portfolioSize-1] = null;
@@ -123,93 +135,93 @@ public class Portfolio implements PortfolioInterface {
 				}
 			}
 			else{
-				System.out.print("Error, an incorrect stock symbol was received");
+				throw new StockNotExistException();
 			}
-		}
+	    }
 	}
 	/**sells stock from portfolio*/
-	public boolean sellStock(String stockSymbol, int quantity){
+	public void sellStock(String stockSymbol, int quantity) throws StockNotExistException{
+		
 		if(stockSymbol.equals(null)){
-			System.out.print("Error, an incorrect stock symbol was received");
-			return false;
+			throw new StockNotExistException();
 		}
 		else if(quantity == 0 || quantity < -1){
-			System.out.print("Error, an incorrect stock symbol was received");
-			return false;
+			throw new StockNotExistException();
 		}
+		
 		else{
 			int index= findIndexBySymbol(stockSymbol);
 			if(index == this.portfolioSize){
-				System.out.print("The stock doesn't exist in the portfolio");
-				return false;
+				throw new StockNotExistException();
 			}
+			
 			else if(((Stock) this.stocks[index]).getStockQuantity() == 0){
-				System.out.print("Error, don't have stocks to sell");
-				return false;
+				throw new StockNotExistException();
 			}
+			
 			else if(quantity > ((Stock) this.stocks[index]).getStockQuantity()){
-				System.out.print("Not enough stocks to sell");
+				throw new StockNotExistException();
 			}
+			
 			else if (quantity == -1){
 				this.balance =this.balance + (((Stock) this.stocks[index]).getStockQuantity()* this.stocks[index].getBid());
 				((Stock) this.stocks[index]).setStockQuantity(0);
-				return true;
 			}
+			
 			else{
 				int stockQuantity = ((Stock) this.stocks[index]).getStockQuantity();
 				this.balance =this.balance + (stockQuantity* this.stocks[index].getBid());
 				((Stock) this.stocks[index]).setStockQuantity(stockQuantity - quantity);
-				return true;
 			}
 		}
-		return false;
 	}
+	
 	/**can buy new or existing stocks to the portfolio */
-	public boolean buyStock(Stock stock, int quantity){
+	public void buyStock(Stock stock, int quantity) throws BalanceException, PortfolioFullException, StockAlreadyExistsException, StockNotExistException{
 		if(stock == null){
-			System.out.print("Error, an incorrect stock");
-			return false;
+			throw new StockNotExistException();
 		}
+		
 		else if(quantity == 0 || quantity < -1){
-			System.out.print("Incorrect quantity of stock was received");
-			return false;
+			throw new StockNotExistException();
 		}
+		
 		else if (this.balance == 0){
-			System.out.print("not enough money to update balance");
+			throw new BalanceException();
 		}
+		
 		else{
 			int index = findIndexBySymbol(stock.symbol);
-			if(index == this.portfolioSize){
+			if(index == this.portfolioSize){//not exists
 				addStock(stock);
+				
 				if(quantity == -1){
 					int quantityOfStock = (int)(this.balance / stock.getAsk());
 					if(quantityOfStock > 0){
 						float tempBalnce = quantityOfStock*stock.getAsk();
 						if(tempBalnce <= this.balance){
-							updateBalance(-tempBalnce);
+								updateBalance(-tempBalnce);
 							stock.setStockQuantity(((Stock) this.stocks[index]).getStockQuantity() + quantityOfStock);
-							return true;
 						}
 						else{
-							System.out.print("Not enough balance to complete purchase");
-							return false;
+							throw new BalanceException();
 						}
 					}
 				}
+				
 				else{
-					float tempCountOfSell = quantity * stock.getAsk(); 
+				float tempCountOfSell = quantity * stock.getAsk(); 
 					if(tempCountOfSell <= this.balance){
-						updateBalance(-tempCountOfSell);
+							updateBalance(-tempCountOfSell);
 						stock.setStockQuantity(((Stock) this.stocks[index]).getStockQuantity() + quantity);
-						return true;
 					}
 					else{
-						System.out.print("Not enough balance to complete purchase");
-						return false;
+						throw new BalanceException();
 					}
 				}
 			}
-			else{
+			
+			else{//if exists
 				if(quantity == -1){
 					int quantityOfStock = (int)(this.balance / stock.getAsk());
 					if(quantityOfStock > 0){
@@ -217,30 +229,27 @@ public class Portfolio implements PortfolioInterface {
 						if(tempBalnce <= this.balance){
 							updateBalance(-tempBalnce);
 							stock.setStockQuantity(((Stock) this.stocks[index]).getStockQuantity() + quantityOfStock);
-							return true;
 						}
 						else{
-							System.out.print("Not enough balance to complete purchase");
-							return false;
+							throw new BalanceException();
 						}
 					}
 				}
+				
 				else{
-					float tempCountOfSell = quantity * stock.getAsk(); 
+				float tempCountOfSell = quantity * stock.getAsk(); 
 					if(tempCountOfSell <= this.balance){
 						updateBalance(-tempCountOfSell);
 						stock.setStockQuantity(((Stock) this.stocks[index]).getStockQuantity() + quantity);
-						return true;
 					}
 					else{
-						System.out.print("Not enough balance to complete purchase");
-						return false;
+						throw new BalanceException();
 					}
 				}
 			}
 		}
-		return false;
 	}
+	
 	/**displays total value of all stocks*/
 	public float getStockValue(){
 		float totalValueOfStocksNotLiquid = 0;
@@ -273,7 +282,7 @@ public class Portfolio implements PortfolioInterface {
 	private int findIndexBySymbol(String stockSymbol){
 		int index = -2;
 		if(stockSymbol.equals(null)){
-			System.out.print("Error, an incorrect stock symbol was received");
+			System.out.print("\nError, an incorrect stock symbol was received");
 		}
 		else if(this.portfolioSize == 0){
 			return 0;
@@ -292,7 +301,7 @@ public class Portfolio implements PortfolioInterface {
 	public Stock findStock(String stockSymbol){
 		int index = 0;
 		if(stockSymbol.equals(null)){
-			System.out.print("Error, an incorrect stock symbol was received");
+			System.out.print("/nError, an incorrect stock symbol was received");
 			return null;
 		}
 		else if(this.portfolioSize == 0){
@@ -309,14 +318,16 @@ public class Portfolio implements PortfolioInterface {
 	}
 
 	/**updates balance*/
-	public void updateBalance(float amount){
-		float tempSumOfBalnce= this.balance + (amount);
-		if(tempSumOfBalnce >= 0){
-			this.balance = tempSumOfBalnce;
-			System.out.print("blanace has been updated");
+	public void updateBalance(float amount) throws BalanceException{
+		
+		float sumBalanceTemp = this.balance + (amount);
+		
+		if(sumBalanceTemp >= 0){
+			this.balance = sumBalanceTemp;
+			System.out.print("\nblanace has been updated");
 		}
 		else{
-			System.out.print("acount balance can not be negative");
+			throw new BalanceException();
 		}
 	}
 	/** returns the max size of the stocks array*/
