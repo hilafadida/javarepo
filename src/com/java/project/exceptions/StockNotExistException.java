@@ -1,4 +1,4 @@
-package exceptions;
+package com.java.project.exceptions;
 
 import org.algo.exception.PortfolioException;
 

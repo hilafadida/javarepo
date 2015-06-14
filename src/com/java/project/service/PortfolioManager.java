@@ -19,13 +19,12 @@ import org.algo.service.MarketService;
 import org.algo.service.PortfolioManagerInterface;
 import org.algo.service.ServiceManager;
 
+import com.java.project.exceptions.BalanceException;
+import com.java.project.exceptions.PortfolioFullException;
+import com.java.project.exceptions.StockAlreadyExistsException;
+import com.java.project.exceptions.StockNotExistException;
 import com.java.project.model.Portfolio;
 import com.java.project.model.Stock;
-
-import exceptions.BalanceException;
-import exceptions.PortfolioFullException;
-import exceptions.StockAlreadyExistsException;
-import exceptions.StockNotExistException;
 
 
 public class PortfolioManager implements PortfolioManagerInterface {

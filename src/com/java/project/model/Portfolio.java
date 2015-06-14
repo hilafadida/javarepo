@@ -3,10 +3,10 @@ package com.java.project.model;
 import org.algo.model.PortfolioInterface;
 import org.algo.model.StockInterface;
 
-import exceptions.BalanceException;
-import exceptions.PortfolioFullException;
-import exceptions.StockAlreadyExistsException;
-import exceptions.StockNotExistException;
+import com.java.project.exceptions.BalanceException;
+import com.java.project.exceptions.PortfolioFullException;
+import com.java.project.exceptions.StockAlreadyExistsException;
+import com.java.project.exceptions.StockNotExistException;
 
 public class Portfolio implements PortfolioInterface {
 
